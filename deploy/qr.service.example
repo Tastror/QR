@@ -1,0 +1,27 @@
+[Unit]
+Description=QR generator and scanner
+After=network.target
+
+[Service]
+Type=simple
+# Replace the account, project path, and Node.js path for your installation.
+User=qr
+Group=qr
+WorkingDirectory=/opt/qr
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/bin/node /opt/qr/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0027
+MemoryHigh=64M
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+.artifacts/
+*.log
+.local/
+*.local
+*.local.*
+*.pem
+*.key
+*.crt
+deploy/qr.service
+deploy/qr.caddy
+deploy/Caddyfile

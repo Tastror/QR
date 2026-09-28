@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3563e9" />
+    <meta name="description" content="免费生成文本、链接二维码，支持 PNG / SVG 下载，也可通过照片或摄像头识别二维码。所有内容仅在浏览器内处理。" />
+    <title>QR · 二维码生成与识别</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="__STYLE__" />
+    <script type="module" src="__SCRIPT__"></script>
+  </head>
+  <body>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h3v3h3v3h-6z"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 13 4-4m-6 6-1 1a4.2 4.2 0 0 1-6-6l4-4a4.2 4.2 0 0 1 6 0m2 2 1-1a4.2 4.2 0 0 1 6 6l-4 4a4.2 4.2 0 0 1-6 0" transform="translate(1 1)"/></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 5h16M12 5v14m-4 0h8M4 5v3m16-3v3"/></symbol>
+      <symbol id="i-scan" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M2 12h20M8 8v8m4-8v8m4-8v8"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24"><path d="M8 5 9.5 3h5L16 5h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="4"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    </svg>
+    <a class="skip-link" href="#workspace">跳至操作区</a>
+    <header class="site-header">
+      <a href="/" class="brand" aria-label="QR 首页"><img src="/favicon.svg" alt="" width="38" height="38" /><span>QR<span class="brand-dot">.</span></span></a>
+      <nav class="main-tabs" aria-label="功能切换">
+        <button type="button" class="nav-tab active" data-mode="generate" aria-pressed="true"><svg class="icon"><use href="#i-qr"/></svg>生成二维码</button>
+        <button type="button" class="nav-tab" data-mode="scan" aria-pressed="false"><svg class="icon"><use href="#i-scan"/></svg>识别二维码</button>
+      </nav>
+      <span class="header-note"><svg class="icon"><use href="#i-shield"/></svg>仅在本地处理</span>
+    </header>
+
+    <main id="workspace" class="container">
+      <div class="page-heading"><div><h1 id="page-title">生成二维码</h1><p id="page-description">输入链接或文字，生成属于你的二维码。</p></div></div>
+
+      <section id="generator" aria-label="生成二维码" class="workspace-card">
+        <div class="generator-editor">
+          <div class="section-heading"><span class="step">01</span><h2>选择内容</h2></div>
+          <div class="content-types" role="group" aria-label="二维码内容类型">
+            <button type="button" class="type-button selected" data-type="url" aria-pressed="true"><svg class="icon"><use href="#i-link"/></svg><span>链接<small>Website URL</small></span><span class="type-check">✓</span></button>
+            <button type="button" class="type-button" data-type="text" aria-pressed="false"><svg class="icon"><use href="#i-text"/></svg><span>文本<small>Plain text</small></span><span class="type-check">✓</span></button>
+          </div>
+          <div class="input-heading"><label for="content" id="content-label">网站链接</label><button type="button" class="text-button" id="clear-content">清空</button></div>
+          <textarea id="content" rows="4" spellcheck="false" autocomplete="off" aria-describedby="content-hint content-error" placeholder="https://example.com">https://example.com</textarea>
+          <div class="input-meta"><span id="content-hint">自动补全缺失的 https://</span><span id="byte-count">0 / 2300</span></div>
+          <p id="content-error" class="error-message" role="status" hidden></p>
+
+          <div class="design-section"><div class="section-heading"><span class="step">02</span><h2>调整样式</h2><span class="optional">可选</span></div>
+            <div class="design-options">
+              <fieldset class="color-field"><legend>二维码颜色</legend><div class="swatches">
+                <button type="button" class="swatch swatch-ink selected" data-color="#182445" aria-label="深蓝色" aria-pressed="true"></button>
+                <button type="button" class="swatch swatch-blue" data-color="#3158ce" aria-label="蓝色" aria-pressed="false"></button>
+                <button type="button" class="swatch swatch-green" data-color="#16705b" aria-label="绿色" aria-pressed="false"></button>
+                <button type="button" class="swatch swatch-purple" data-color="#7040a0" aria-label="紫色" aria-pressed="false"></button>
+                <button type="button" class="swatch swatch-black" data-color="#111111" aria-label="黑色" aria-pressed="false"></button>
+              </div></fieldset>
+              <div class="size-field"><label for="size">导出尺寸</label><select id="size"><option value="512">512 × 512 px</option><option value="1024" selected>1024 × 1024 px</option><option value="2048">2048 × 2048 px</option></select></div>
+            </div>
+          </div>
+        </div>
+        <aside class="preview-panel" aria-label="二维码预览">
+          <div class="preview-heading"><span>实时预览</span><span class="preview-badge" id="preview-badge">已生成</span></div>
+          <div class="qr-stage"><div class="qr-paper"><canvas id="qr-canvas" role="img" aria-label="生成的二维码"></canvas><div id="qr-empty" class="qr-empty" hidden><svg class="icon"><use href="#i-qr"/></svg><p>输入内容<br/><span>二维码将在这里出现</span></p></div></div></div>
+          <div class="preview-caption"><strong id="preview-type">链接二维码</strong><span id="preview-detail">1024 × 1024 px · PNG / SVG</span></div>
+          <button type="button" class="button primary download-button" id="download-png"><svg class="icon"><use href="#i-download"/></svg>下载 PNG</button>
+          <button type="button" class="button secondary" id="download-svg">下载 SVG <span>矢量格式</span></button>
+        </aside>
+      </section>
+
+      <section id="scanner" class="workspace-card scanner-card" aria-label="识别二维码" hidden>
+        <div class="scanner-editor">
+          <div class="section-heading"><span class="step">01</span><h2>添加二维码</h2></div>
+          <div class="scan-methods" role="group" aria-label="识别方式"><button type="button" class="method-button selected" data-method="image" aria-pressed="true"><svg class="icon"><use href="#i-image"/></svg>上传图片</button><button type="button" class="method-button" data-method="camera" aria-pressed="false"><svg class="icon"><use href="#i-camera"/></svg>摄像头</button></div>
+          <div id="image-source">
+            <input type="file" id="image-file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml" class="visually-hidden" aria-label="选择二维码图片" />
+            <button type="button" id="drop-zone" class="drop-zone"><span class="upload-icon"><svg class="icon"><use href="#i-image"/></svg></span><strong>点击上传，或拖入二维码图片</strong><span>支持 PNG、JPG、WebP、GIF、BMP、SVG · 最大 20 MB</span><span class="upload-pill">选择图片<svg class="icon"><use href="#i-arrow"/></svg></span></button>
+            <div class="image-preview" id="image-preview" hidden><img id="source-image" alt="待识别的二维码图片" /><div><span id="image-name"></span><button type="button" class="text-button" id="change-image">更换图片</button></div></div>
+            <p class="source-tip">也可以直接粘贴截图：⌘ V / Ctrl V</p>
+          </div>
+          <div id="camera-source" hidden>
+            <div class="camera-stage"><video id="camera-video" muted playsinline aria-label="摄像头实时画面"></video><div class="camera-placeholder" id="camera-placeholder"><svg class="icon"><use href="#i-camera"/></svg><p>将二维码放进画面中</p><span>开启后会自动识别</span></div><div class="camera-guide" id="camera-guide" hidden></div></div>
+            <div class="camera-controls"><button type="button" class="button primary" id="camera-toggle"><svg class="icon"><use href="#i-camera"/></svg><span>开启摄像头</span></button><button type="button" class="button secondary" id="camera-switch" disabled>切换镜头</button></div>
+          </div>
+          <p class="scan-status" id="scan-status" role="status" aria-live="polite">选择一张包含二维码的图片。</p>
+        </div>
+        <aside class="result-panel" aria-label="识别结果"><div class="section-heading"><span class="step">02</span><h2>识别结果</h2><span id="result-badge" class="preview-badge" hidden>识别成功</span></div><div id="result-empty" class="result-empty"><div class="result-icon"><svg class="icon"><use href="#i-scan"/></svg></div><p>识别后的文字或链接<br/>会显示在这里。</p></div><div id="result-content" hidden><label for="scan-result" id="result-label">文本内容</label><textarea id="scan-result" readonly spellcheck="false" rows="8"></textarea><button type="button" class="button primary" id="copy-result"><svg class="icon"><use href="#i-copy"/></svg>复制内容</button><a id="open-result" class="button secondary" href="#" target="_blank" rel="noopener noreferrer" hidden>打开链接<svg class="icon"><use href="#i-arrow"/></svg></a><button type="button" id="regenerate" class="text-button regenerate">用此内容生成二维码 <span>→</span></button></div></aside>
+      </section>
+
+      <div class="bottom-note"><svg class="icon"><use href="#i-shield"/></svg><span id="privacy-note">你的内容只留在浏览器里。</span></div>
+    </main>
+    <footer class="site-footer"><span>QR<span class="brand-dot">.</span> <span class="footer-credit">一个简单的二维码工具</span></span></footer>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <noscript><p class="noscript">请开启 JavaScript，以便在浏览器内生成和识别二维码。</p></noscript>
+  </body>
+</html>
