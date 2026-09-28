@@ -83,7 +83,13 @@
           </div>
           <div id="camera-source" hidden>
             <div class="camera-stage"><video id="camera-video" muted playsinline aria-label="摄像头实时画面"></video><div class="camera-placeholder" id="camera-placeholder"><svg class="icon"><use href="#i-camera"/></svg><p>将二维码放进画面中</p><span>开启后会自动识别</span></div><div class="camera-guide" id="camera-guide" hidden></div></div>
-            <div class="camera-controls"><button type="button" class="button primary" id="camera-toggle"><svg class="icon"><use href="#i-camera"/></svg><span>开启摄像头</span></button><button type="button" class="button secondary" id="camera-switch" disabled>切换镜头</button></div>
+            <div class="camera-controls">
+              <button type="button" class="button primary" id="camera-toggle"><svg class="icon"><use href="#i-camera"/></svg><span>开启摄像头</span></button>
+              <div class="camera-picker">
+                <button type="button" class="button secondary camera-picker-trigger" id="camera-switch" aria-label="选择镜头" aria-haspopup="listbox" aria-expanded="false" aria-controls="camera-list" disabled><span id="camera-selection">选择镜头</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+                <div id="camera-list" class="camera-menu" role="listbox" aria-label="可用摄像头" hidden></div>
+              </div>
+            </div>
           </div>
           <p class="scan-status" id="scan-status" role="status" aria-live="polite">选择一张包含二维码的图片。</p>
         </div>

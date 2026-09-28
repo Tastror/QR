@@ -13,7 +13,8 @@ let scanner;
 let cameraId = 0;
 let cameraState = 'idle';
 let cameras = [];
-let currentCamera = 0;
+let currentCamera = '';
+let switchingCamera = false;
 
 function toast(message) {
   clearTimeout(toastTimer);
@@ -186,9 +187,70 @@ async function scanFile(file) {
 function updateCameraControls() {
   const active = cameraState !== 'idle';
   $('camera-toggle').querySelector('span').textContent = cameraState === 'starting' ? '取消开启' : active ? '停止摄像头' : '开启摄像头';
-  $('camera-switch').disabled = cameraState !== 'running' || cameras.length < 2;
+  $('camera-switch').disabled = cameraState !== 'running' || cameras.length < 2 || switchingCamera;
+  if ($('camera-switch').disabled) closeCameraMenu();
   $('camera-placeholder').hidden = cameraState === 'running';
   $('camera-guide').hidden = cameraState !== 'running';
+}
+
+function closeCameraMenu(restoreFocus = false) {
+  $('camera-list').hidden = true;
+  $('camera-switch').setAttribute('aria-expanded', 'false');
+  if (restoreFocus && !$('camera-switch').disabled) $('camera-switch').focus();
+}
+
+function openCameraMenu(direction = 'down') {
+  if ($('camera-switch').disabled) return;
+  $('camera-list').hidden = false;
+  $('camera-switch').setAttribute('aria-expanded', 'true');
+  const options = Array.from($('camera-list').children);
+  const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
+  (selected || (direction === 'up' ? options.at(-1) : options[0]))?.focus();
+}
+
+function renderCameraOptions() {
+  const menu = $('camera-list');
+  menu.replaceChildren();
+  cameras.forEach((camera, index) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'camera-option';
+    option.tabIndex = -1;
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', String(camera.id === currentCamera));
+    option.textContent = camera.label?.trim() || `摄像头 ${index + 1}`;
+    option.title = option.textContent;
+    option.addEventListener('click', () => selectCamera(camera.id));
+    menu.append(option);
+  });
+  const selectedIndex = cameras.findIndex((camera) => camera.id === currentCamera);
+  const label = selectedIndex >= 0 ? cameras[selectedIndex].label?.trim() || `摄像头 ${selectedIndex + 1}` : '选择镜头';
+  $('camera-selection').textContent = label;
+  $('camera-switch').title = label;
+  $('camera-switch').setAttribute('aria-label', selectedIndex >= 0 ? `选择镜头，当前：${label}` : '选择镜头');
+}
+
+async function selectCamera(deviceId) {
+  if (!scanner || cameraState !== 'running' || switchingCamera) return;
+  closeCameraMenu(true);
+  if (deviceId === currentCamera) return;
+  const instance = scanner;
+  const id = cameraId;
+  switchingCamera = true;
+  updateCameraControls();
+  try {
+    await instance.setCamera(deviceId);
+    if (id !== cameraId) return;
+    const actualId = $('camera-video').srcObject?.getVideoTracks()[0]?.getSettings().deviceId;
+    currentCamera = actualId || deviceId;
+    renderCameraOptions();
+    if (actualId && actualId !== deviceId) scanStatus('所选镜头当前不可用，已使用其他可用镜头。', 'error');
+    else scanStatus('正在扫描，对准二维码即可自动识别。');
+  } catch {
+    if (id === cameraId) { await stopCamera(); scanStatus('切换镜头失败，请重新开启摄像头。', 'error'); }
+  } finally {
+    if (id === cameraId) { switchingCamera = false; updateCameraControls(); }
+  }
 }
 
 async function stopCamera() {
@@ -196,6 +258,7 @@ async function stopCamera() {
   const previous = scanner;
   scanner = undefined;
   cameraState = 'idle';
+  switchingCamera = false;
   updateCameraControls();
   const video = $('camera-video');
   video.srcObject?.getTracks().forEach((track) => track.stop());
@@ -214,6 +277,9 @@ async function startCamera() {
   await stopCamera();
   const id = ++cameraId;
   cameraState = 'starting';
+  cameras = [];
+  currentCamera = '';
+  renderCameraOptions();
   updateCameraControls();
   clearResult();
   scanStatus('请允许访问摄像头，然后将二维码放入画面。');
@@ -242,7 +308,8 @@ async function startCamera() {
     try { cameras = await QrScanner.listCameras(); } catch { cameras = []; }
     if (id !== cameraId) return;
     const activeId = $('camera-video').srcObject?.getVideoTracks()[0]?.getSettings().deviceId;
-    currentCamera = Math.max(0, cameras.findIndex((camera) => camera.id === activeId));
+    currentCamera = activeId || '';
+    renderCameraOptions();
     updateCameraControls();
   } catch (error) {
     if (id !== cameraId) return;
@@ -315,18 +382,32 @@ $('camera-toggle').addEventListener('click', () => {
   if (cameraState !== 'idle') { stopCamera(); scanStatus('摄像头已关闭。'); }
   else startCamera();
 });
-$('camera-switch').addEventListener('click', async () => {
-  if (!scanner || cameras.length < 2) return;
-  const instance = scanner;
-  const id = cameraId;
-  $('camera-switch').disabled = true;
-  currentCamera = (currentCamera + 1) % cameras.length;
-  try { await instance.setCamera(cameras[currentCamera].id); }
-  catch {
-    if (id === cameraId) { await stopCamera(); scanStatus('切换镜头失败，请重新开启摄像头。', 'error'); }
-  }
-  if (id === cameraId) updateCameraControls();
+$('camera-switch').addEventListener('click', () => {
+  if ($('camera-list').hidden) openCameraMenu();
+  else closeCameraMenu();
 });
+$('camera-switch').addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    event.preventDefault();
+    openCameraMenu(event.key === 'ArrowUp' ? 'up' : 'down');
+  }
+});
+$('camera-list').addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') { event.preventDefault(); closeCameraMenu(true); return; }
+  if (event.key === 'Tab') { closeCameraMenu(); return; }
+  const options = Array.from($('camera-list').children);
+  const index = options.indexOf(document.activeElement);
+  let next;
+  if (event.key === 'ArrowUp') next = (index - 1 + options.length) % options.length;
+  else if (event.key === 'ArrowDown') next = (index + 1) % options.length;
+  else if (event.key === 'Home') next = 0;
+  else if (event.key === 'End') next = options.length - 1;
+  else return;
+  event.preventDefault();
+  options[next]?.focus();
+});
+document.addEventListener('click', (event) => { if (!event.target.closest('.camera-picker')) closeCameraMenu(); });
+window.addEventListener('resize', () => closeCameraMenu());
 $('copy-result').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('scan-result').value); toast('内容已复制'); }
   catch { $('scan-result').focus(); $('scan-result').select(); toast('请按 ⌘ C / Ctrl C 复制已选内容。'); }
